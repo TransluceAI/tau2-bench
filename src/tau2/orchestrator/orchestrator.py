@@ -23,6 +23,9 @@ from tau2.user.base import BaseUser, is_valid_user_history_message
 from tau2.user.user_simulator import DummyUser, UserSimulator, UserState
 from tau2.utils.llm_utils import get_cost
 from tau2.utils.utils import format_time, get_now
+from docent.trace import initialize_tracing, agent_run
+
+initialize_tracing(collection_name='tau2-test')
 
 
 class Role(str, Enum):
@@ -241,6 +244,7 @@ class Orchestrator:
 
         self.environment.sync_tools()
 
+    @agent_run
     def run(self) -> SimulationRun:
         """
         Run the simulation.
