@@ -23,7 +23,7 @@ from tau2.user.base import BaseUser, is_valid_user_history_message
 from tau2.user.user_simulator import DummyUser, UserSimulator, UserState
 from tau2.utils.llm_utils import get_cost
 from tau2.utils.utils import format_time, get_now
-from docent.trace import initialize_tracing, agent_run
+from docent.trace import initialize_tracing, agent_run, transcript_group_context
 
 initialize_tracing(collection_name='tau2-test')
 
@@ -256,7 +256,9 @@ class Orchestrator:
         start = time.perf_counter()
         self.initialize()
         while not self.done:
-            self.step()
+            with transcript_group_context(name="agent") as agent_tg_id:
+                with transcript_group_context(name="user") as user_tg_id:
+                    self.step(agent_tg_id, user_tg_id)
             if self.step_count >= self.max_steps:
                 self.done = True
                 self.termination_reason = TerminationReason.MAX_STEPS
@@ -285,7 +287,7 @@ class Orchestrator:
         )
         return simulation_run
 
-    def step(self):
+    def step(self, agent_tg_id: str, user_tg_id: str):
         """
         Perform one step of the simulation.
         Sends self.message from self.from_role to self.to_role
@@ -302,9 +304,10 @@ class Orchestrator:
         )
         # AGENT/ENV -> USER
         if self.from_role in [Role.AGENT, Role.ENV] and self.to_role == Role.USER:
-            user_msg, self.user_state = self.user.generate_next_message(
-                self.message, self.user_state
-            )
+            with transcript_group_context(transcript_group_id=user_tg_id) as user_tg_id:
+                user_msg, self.user_state = self.user.generate_next_message(
+                    self.message, self.user_state
+                )
             user_msg.validate()
             if UserSimulator.is_stop(user_msg):
                 self.done = True
@@ -320,9 +323,10 @@ class Orchestrator:
         elif (
             self.from_role == Role.USER or self.from_role == Role.ENV
         ) and self.to_role == Role.AGENT:
-            agent_msg, self.agent_state = self.agent.generate_next_message(
-                self.message, self.agent_state
-            )
+            with transcript_group_context(transcript_group_id=agent_tg_id) as agent_tg_id:
+                agent_msg, self.agent_state = self.agent.generate_next_message(
+                    self.message, self.agent_state
+                )
             agent_msg.validate()
             if self.agent.is_stop(agent_msg):
                 self.done = True
