@@ -20,7 +20,12 @@ from tau2.user.user_simulator import DummyUser, get_global_user_sim_guidelines
 from tau2.utils.display import ConsoleDisplay, Text
 from tau2.utils.pydantic_utils import get_pydantic_hash
 from tau2.utils.utils import DATA_DIR, get_commit_hash, get_now, show_dict_diff
-from docent.trace import agent_run_context, agent_run_metadata
+from docent.trace import agent_run_context, agent_run_metadata, initialize_tracing
+
+# import litellm
+# litellm._turn_on_debug()
+
+initialize_tracing(collection_name='tau2-test')
 
 
 def get_options() -> RegistryInfo:
