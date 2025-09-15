@@ -255,12 +255,9 @@ class Orchestrator:
         start = time.perf_counter()
         self.initialize()
         while not self.done:
-            # with transcript_group_context(name="agent") as agent_tg_id:
-            with nullcontext():
-                # with transcript_group_context(name="user") as user_tg_id:
-                with nullcontext():
-                    # self.step(agent_tg_id, user_tg_id)
-                    self.step()
+            with transcript_group_context(name="agent") as agent_tg_id:
+                with transcript_group_context(name="user") as user_tg_id:
+                    self.step(agent_tg_id, user_tg_id)
             if self.step_count >= self.max_steps:
                 self.done = True
                 self.termination_reason = TerminationReason.MAX_STEPS
@@ -289,8 +286,8 @@ class Orchestrator:
         )
         return simulation_run
 
-    # def step(self, agent_tg_id: str, user_tg_id: str):
-    def step(self):
+    def step(self, agent_tg_id: str, user_tg_id: str):
+    # def step(self):
         """
         Perform one step of the simulation.
         Sends self.message from self.from_role to self.to_role
@@ -307,8 +304,7 @@ class Orchestrator:
         )
         # AGENT/ENV -> USER
         if self.from_role in [Role.AGENT, Role.ENV] and self.to_role == Role.USER:
-            # with transcript_group_context(transcript_group_id=user_tg_id) as user_tg_id:
-            with nullcontext():
+            with transcript_group_context(transcript_group_id=user_tg_id) as user_tg_id:
                 user_msg, self.user_state = self.user.generate_next_message(
                     self.message, self.user_state
                 )
@@ -327,8 +323,7 @@ class Orchestrator:
         elif (
             self.from_role == Role.USER or self.from_role == Role.ENV
         ) and self.to_role == Role.AGENT:
-            # with transcript_group_context(transcript_group_id=agent_tg_id) as agent_tg_id:
-            with nullcontext():
+            with transcript_group_context(transcript_group_id=agent_tg_id) as agent_tg_id:
                 agent_msg, self.agent_state = self.agent.generate_next_message(
                     self.message, self.agent_state
                 )

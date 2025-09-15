@@ -25,6 +25,7 @@ from docent.trace import agent_run_context, agent_run_metadata, initialize_traci
 # import litellm
 # litellm._turn_on_debug()
 
+# initialize_tracing(collection_name='tau2-test', endpoint="https://localhost:8890")
 initialize_tracing(collection_name='tau2-test')
 
 
