@@ -20,7 +20,7 @@ from tau2.user.user_simulator import DummyUser, get_global_user_sim_guidelines
 from tau2.utils.display import ConsoleDisplay, Text
 from tau2.utils.pydantic_utils import get_pydantic_hash
 from tau2.utils.utils import DATA_DIR, get_commit_hash, get_now, show_dict_diff
-from docent.trace import agent_run_context, agent_run_metadata, initialize_tracing
+from docent.trace import agent_run_context, agent_run_metadata, initialize_tracing, flush_tracing
 
 # import litellm
 # litellm._turn_on_debug()
@@ -486,6 +486,8 @@ def run_task(
         agent_run_metadata({
             "reward_info": reward_info.model_dump(),
         })
+
+    flush_tracing()
 
     logger.info(
         f"FINISHED SIMULATION: Domain: {domain}, Task: {task.id}, Agent: {agent.__class__.__name__}, User: {user.__class__.__name__}. Reward: {reward_info.reward}"
